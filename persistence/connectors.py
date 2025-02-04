@@ -17,7 +17,7 @@ class Base(DeclarativeBase):
     pass
 
 # Dependency to get DB session
-def get_db():
+def get_session():
     db = SessionLocal()
     try:
         yield db

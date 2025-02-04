@@ -6,7 +6,7 @@ from persistence.connectors import Base
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, primary_key=True, index=True)
     username = Column(String(50), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
@@ -22,15 +22,37 @@ class Role(Base):
     description = Column(String(255), nullable=False)
 
 
-# class Income(Base):
-#     __tablename__ = "income"
+class IncomeCategory(Base):
+    __tablename__ = "income_categories"
 
-#     id = Column(Integer, primary_key=True, index=True)
-#     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-#     month = Column(Date, nullable=False)
-#     amount = Column(Float, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String, unique=True, nullable=False)
 
-#     user = relationship("User", back_populates="income")
+    incomes = relationship("Income", back_populates="income_type")
+
+
+class Frequency(Base):
+    __tablename__ = "frequencies"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    description = Column(String, unique=True, nullable=False)
+
+    incomes = relationship("Income", back_populates="income_frequency")
+
+
+class Income(Base):
+    __tablename__ = "income"
+
+    income_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    month = Column(Date, nullable=False)
+    amount_encrypted = Column(String(255), nullable=False)
+    income_type = Column(Integer, ForeignKey("income_categories.id"), nullable=False)
+    income_frequency = Column(Integer, ForeignKey("frequencies"), nullable=False)
+
+    user = relationship("User", back_populates="income.id")
+    income_type = relationship("IncomeCategory", back_populates="incomes")
+    income_frequency = relationship("Frequency", back_populates="incomes")
 
 
 # class Expense(Base):
