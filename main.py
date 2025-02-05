@@ -9,6 +9,7 @@ from services.user_service import login_user, register_user
 from styles.navbar_styles import styles, options
 
 
+# def main():
 load_dotenv()
 
 # Initialize Cookie Manager in the UI layer
@@ -55,27 +56,29 @@ def register_user_form():
 
 
 def login_user_form():
-    st.header("Login")
+    with st.form("Login"):
     
-    # Input Fields
-    username = st.text_input("Username", key="login_username")
-    password = st.text_input("Password", type="password", key="login_password")
+        # Input Fields
+        username = st.text_input("Username", key="login_username")
+        password = st.text_input("Password", type="password", key="login_password")
+        submit = st.form_submit_button("Login")
 
-    if st.button("Login", key="login_submit"):
-        response = login_user(username, password)
-        if response["status"] == "error":
-            st.error(response["message"])
-        else:
-            st.success(response["message"])
-            # Generate JWT
-            token = create_jwt(user_id=response["user_id"])
-            cookies["jwt_token"] = token
-            cookies.save()
+        if submit:
+            response = login_user(username, password)
+            if response["status"] == "error":
+                st.error(response["message"])
+            else:
+                # st.success(response["message"])
+                # Generate JWT
+                token = create_jwt(user_id=response["user_id"])
+                cookies["jwt_token"] = token
+                cookies.save()
 
-            st.session_state["authenticated"] = True
-            st.session_state["username"] = username
-            st.rerun()
-       
+                st.session_state["authenticated"] = True
+                st.session_state["username"] = username
+                st.rerun()
+                st.success(f"Welcome {username}")
+    
 
 def logout():
     st.header("Logout")
@@ -83,6 +86,11 @@ def logout():
     cookies.save()
     st.success("Logged out successfully! Refreshing...")
     st.rerun()
+
+# Initialize authentication state
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+    st.session_state.username = None
 
 
 col1, col2, col3, col4 = st.columns(4)
@@ -103,4 +111,5 @@ st.title("Finance Tracker Dashboard")
 st.write("Money Management Made Easy")
 
 
-
+# if __name__ == "__main__":
+#     main()

@@ -12,7 +12,7 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     role_id = Column(Integer, ForeignKey("roles.role_id"))
 
-    # income = relationship("Income", back_populates="user")
+    income = relationship("Income", back_populates="user")
 
 
 class Role(Base):
@@ -26,7 +26,7 @@ class IncomeCategory(Base):
     __tablename__ = "income_categories"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column(String, unique=True, nullable=False)
+    income_description = Column(String, unique=True, nullable=False)
 
     incomes = relationship("Income", back_populates="income_type")
 
@@ -35,7 +35,7 @@ class Frequency(Base):
     __tablename__ = "frequencies"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    description = Column(String, unique=True, nullable=False)
+    frequency_description = Column(String, unique=True, nullable=False)
 
     incomes = relationship("Income", back_populates="income_frequency")
 
@@ -47,13 +47,13 @@ class Income(Base):
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     month = Column(Date, nullable=False)
     amount_encrypted = Column(String(255), nullable=False)
-    income_type = Column(Integer, ForeignKey("income_categories.id"), nullable=False)
-    income_frequency = Column(Integer, ForeignKey("frequencies"), nullable=False)
+    income_type_id = Column(Integer, ForeignKey("income_categories.id"), nullable=False)
+    income_frequency_id = Column(Integer, ForeignKey("frequencies.id"), nullable=False)
 
-    user = relationship("User", back_populates="income.id")
+    user = relationship("User", back_populates="income")  
     income_type = relationship("IncomeCategory", back_populates="incomes")
     income_frequency = relationship("Frequency", back_populates="incomes")
-
+    
 
 # class Expense(Base):
 #     __tablename__ = "expenses"

@@ -6,7 +6,10 @@ from services.income_service import get_frequencies, get_income_categories
 st.title("Income Entry Form 💰")
 
 # Load categories and frequencies from the database
+categories = get_income_categories()
+print(f'This IS THE OUTPUT {categories}')
 income_categories = dict(get_income_categories())
+
 #frequencies = dict(get_frequencies())
 
 # User input fields

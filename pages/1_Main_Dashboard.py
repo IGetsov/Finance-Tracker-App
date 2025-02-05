@@ -1,6 +1,6 @@
 import streamlit as st
 
-
+st.title("Main Dashboard")
 def show_home():
     st.header("Home page")
     st.write("This is the main homepage")

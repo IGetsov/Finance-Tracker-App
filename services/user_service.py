@@ -36,20 +36,26 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def view_roles():
-    with get_session() as session:
+    session = next(get_session())
+    try:
         result = session.query(Role).all()
         return result
+    finally:
+        session.close()
 
 
 def view_users():
-    with get_session() as session:
+    session = next(get_session())
+    try:
         result = session.query(User).all()
         return result
-
+    finally:
+        session.close()
 
 # Register function
 def register_user(user_name: str, new_email: str, password: str) -> Dict[str, str]:
-    with get_session() as session:
+    session = next(get_session())
+    try:
     # Check if user already exists and return warning message in the app
         is_user = session.query(User).filter(User.username == user_name).first()
         if is_user:
@@ -73,11 +79,14 @@ def register_user(user_name: str, new_email: str, password: str) -> Dict[str, st
             return {"status": "success", "message": f"You have registered successfully!\nA confirmation email will be sent shortly."}
         else:
             return {"status": "warning", "message": "User registered, but email sending failed."}
+    finally:
+        session.close()
 
 
 # Login function
 def login_user(user_name: str, password: str) -> Dict[str, str]:
-    with get_session() as session:
+    session = next(get_session())
+    try:
         # Check if user name does not exist and raise an error
         is_user = session.query(User).filter(User.username == user_name).first()
         
@@ -90,9 +99,7 @@ def login_user(user_name: str, password: str) -> Dict[str, str]:
             "status": "success",
             "message": f"Welcome {user_name}!"
         }
+    finally:
+        session.close()
 
-# Logout function
-def logout():
-    cookies["jwt_token"] = ""
-    cookies.save()
-    st.success("Logged out successfully! Refresh the page.")   
+  
