@@ -1,110 +1,72 @@
 import streamlit as st
+import streamlit_authenticator as stauth
 import os
-from dotenv import load_dotenv
-from streamlit_cookies_manager import EncryptedCookieManager
-from streamlit_navigation_bar import st_navbar
-import pages as pg
-from services.token_service import create_jwt
-from services.user_service import login_user, register_user
-from styles.navbar_styles import styles, options
+#from streamlit_navigation_bar import st_navbar
+#import pages as pg
+#from services.authentication_service import login_user_form, register_user_form
+from services.token_service import create_jwt, decode_jwt
+from services import user_service as us
+import yaml
+from yaml.loader import SafeLoader
 
 
-# def main():
-load_dotenv()
-
-# Initialize Cookie Manager in the UI layer
 COOKIE_PASS = os.getenv("COOKIE_SECRET")
-cookies = EncryptedCookieManager(prefix="auth_", password=COOKIE_PASS)
-
-# Ensure cookies are ready
-if not cookies.ready():
-    st.stop()
+# Prompt Login Form on app start
+users = us.view_users()
 
 
-# Initialize session state Default to home screen
-if "page" not in st.session_state:
-    st.session_state.page = "home"
+# Convert user data to match expected format for streamlit_authenticator
+credentials = {
+    "usernames": {
+        user.username: {
+            "email": user.email,
+            "name": user.username,
+            "password": create_jwt(user.user_id)  # Store JWT as "password"
+        } for user in users
+    }
+}
 
-# Navigation helper
-def navigate_to_page(page_name):
-    st.session_state.page = page_name
-    st.rerun()
+# Save credentials to a YAML file (streamlit_authenticator requires a file)
+with open("credentials.yaml", "w") as file:
+    yaml.dump({"credentials": credentials}, file)
 
+# Read YAML for authenticator
+with open("credentials.yaml") as file:
+    config = yaml.load(file, Loader=SafeLoader)
 
-# /// Adding Login And Register functions in order to keep cookies session
-# Display content based on the selected page
-def register_user_form():
-    st.header("Register")
-    
-    # Input Fields
-    username = st.text_input("Username", key="register_username")
-    email = st.text_input("Email", key="register_email")
-    password = st.text_input("Password", type="password", key="register_password")
-    confirm_password = st.text_input("Confirm Password", type="password", key="register_confirm_password")
+# Create authenticator instance (cookie duration set for session persistence)
+authenticator = stauth.Authenticate(
+    config["credentials"], 
+    cookie_name="auth_cookie",
+    key=COOKIE_PASS,  # Must match COOKIE_SECRET in .env
+    cookie_expiry_days=10
+)
 
-    if st.button("Submit",key="register_submit"):
-        if password != confirm_password:
-            st.error("Passwords do not match!")
-        
-        response = register_user(username, email, password)
-        if response["status"] == "error":
-            st.error(response["message"])
-        else:
-            st.success(response["message"])
-            st.session_state.page = "login"
-            st.rerun()
+name, authentication_status, username = authenticator.login("Login", location="main")
 
+# Handle login cases
+if authentication_status:
+    # Logout button
+    authenticator.logout("Logout", "sidebar")
+    st.sidebar.write(f"Logged in as {username}")
 
-def login_user_form():
-    with st.form("Login"):
-    
-        # Input Fields
-        username = st.text_input("Username", key="login_username")
-        password = st.text_input("Password", type="password", key="login_password")
-        submit = st.form_submit_button("Login")
+elif authentication_status is False:
+    st.error("Invalid username or password")
 
-        if submit:
-            response = login_user(username, password)
-            if response["status"] == "error":
-                st.error(response["message"])
-            else:
-                # st.success(response["message"])
-                # Generate JWT
-                token = create_jwt(user_id=response["user_id"])
-                cookies["jwt_token"] = token
-                cookies.save()
-
-                st.session_state["authenticated"] = True
-                st.session_state["username"] = username
-                st.rerun()
-                st.success(f"Welcome {username}")
-    
-
-def logout():
-    st.header("Logout")
-    cookies["jwt_token"] = ""
-    cookies.save()
-    st.success("Logged out successfully! Refreshing...")
-    st.rerun()
-
-# Initialize authentication state
-if "authenticated" not in st.session_state:
-    st.session_state.authenticated = False
-    st.session_state.username = None
+elif authentication_status is None:
+    st.warning("Please enter your username and password")
 
 
-col1, col2, col3, col4 = st.columns(4)
-with col3:
-    if st.button('Register'):
-        register_user_form()
-with col4:
-    if st.button("Login"):
-        login_user_form()
 
-st.sidebar.title("Navigation")
-st.sidebar.page_link("pages/1_Main_Dashboard.py", label="Main Dashboard")
-st.sidebar.page_link("pages/2_Income_Entry.py", label="Income")
+
+#st.sidebar.title("Navigation")
+# st.sidebar.page_link("pages/1_Main_Dashboard.py", label="Main Dashboard")
+# st.sidebar.page_link("pages/2_Income_Entry.py", label="Income")
 # st.sidebar.page_link("pages/3_Users.py", label="Manage Users")
+
+
+
+
 
 st.title("Finance Tracker Dashboard")
 

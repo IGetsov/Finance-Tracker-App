@@ -1,7 +1,6 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import jwt
-import streamlit as st
 
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -14,7 +13,7 @@ COOKIE_PASS = os.getenv("COOKIE_SECRET")
 def create_jwt(user_id: int):
     payload = {
         "user_id": user_id,
-        "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=1),  # Token expires in 1 hour
+        "exp": datetime.utcnow() + timedelta(hours=1),  # Token expires in 1 hour
     }
     token = jwt.encode(payload, SECRET_KEY, ALGORITHM)
     return token

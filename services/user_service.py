@@ -36,6 +36,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def view_roles():
+    """Return recordset for all user roles"""
     session = next(get_session())
     try:
         result = session.query(Role).all()
@@ -45,12 +46,14 @@ def view_roles():
 
 
 def view_users():
+    """Return recordset for all users"""
     session = next(get_session())
     try:
         result = session.query(User).all()
         return result
     finally:
         session.close()
+
 
 # Register function
 def register_user(user_name: str, new_email: str, password: str) -> Dict[str, str]:
