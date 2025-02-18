@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from persistence.connectors import get_session
+import streamlit_authenticator as stauth
 from persistence.db_models import Role, User
 from passlib.context import CryptContext
 from typing import Dict
@@ -32,8 +33,11 @@ def hash_password(password: str) -> str:
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verifies a password against its hash."""
-    return pwd_context.verify(plain_password, hashed_password)
-
+    if stauth.Hasher([plain_password]).generate()[0] == hashed_password:
+        return True
+    else:
+        return False
+ 
 
 def view_roles():
     """Return recordset for all user roles"""
@@ -56,7 +60,7 @@ def view_users():
 
 
 # Register function
-def register_user(user_name: str, new_email: str, password: str) -> Dict[str, str]:
+def register_user(user_name: str, new_email: str, hashed_password: str) -> Dict[str, str]:
     session = next(get_session())
     try:
     # Check if user already exists and return warning message in the app
@@ -67,7 +71,6 @@ def register_user(user_name: str, new_email: str, password: str) -> Dict[str, st
                 "message": f'The username {user_name} is already registered! Please try different username.'
                 }
         # If username does not exist - continue with creating the user
-        hashed_password = hash_password(password)
 
         new_user = User(username=user_name, email=new_email, password_hash=hashed_password, role_id=100)
         session.add(new_user)
