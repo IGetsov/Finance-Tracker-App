@@ -58,6 +58,15 @@ def view_users():
     finally:
         session.close()
 
+def view_user_by_name(username: str):
+    """Return user record if username matched"""
+    sesssion = next(get_session())
+    try:
+        result = sesssion.query(User).filter(User.username == username).first()
+        return result
+    finally:
+        sesssion.close()
+
 
 # Register function
 def register_user(user_name: str, new_email: str, hashed_password: str) -> Dict[str, str]:
