@@ -26,7 +26,7 @@ def get_frequencies():
 
 def add_income(user_id: int, amount: float, income_type: int, frequency: int):
     session = next(get_session())
-    print(f"Income type {int(income_type)}\nFrequency {int(frequency)}")
+    
     try:
         # Validate data types
         new_income = IncomeCreate(
@@ -36,17 +36,59 @@ def add_income(user_id: int, amount: float, income_type: int, frequency: int):
             income_type=int(income_type),
             income_frequency=int(frequency)
         )
+
+        # Get Income Type and Frequency as objects
+        income_type_obj = session.query(IncomeCategory).filter_by(id=new_income.income_type).first()
+        income_frequency_obj = session.query(Frequency).filter_by(id=new_income.income_frequency).first()
+
+        if not income_type_obj or not income_frequency_obj:
+            raise ValueError("Invalid income type or frequency selection.")
         
         income_to_add = Income(
             user_id=user_id,
             amount_encrypted=str(new_income.amount),  # Convert to bytes
-            income_type=new_income.income_type,
-            income_frequency=new_income.income_frequency,
+            income_type=income_type_obj,
+            income_frequency=income_frequency_obj,
             month=new_income.month
         )
         session.add(income_to_add)
         session.commit()
         print(income_to_add)
         return income_to_add
+    except Exception as e:
+        session.rollback()
+        raise e
+    finally:
+        session.close()
+
+    
+def edit_income(income_id: int, user_id: int, amount: float, income_type: int, frequency: int, month: date):
+    session = next(get_session())
+
+    try:
+        income_record = session.query(Income).filter_by(id=income_id, user_id=user_id).first()
+        if not income_record:
+            raise ValueError("Income record not found!")
+
+        # Get Income Type and Frequency as objects
+        income_type_obj = session.query(IncomeCategory).filter_by(id=income_type).first()
+        income_frequency_obj = session.query(Frequency).filter_by(id=frequency).first()
+
+        if not income_type_obj or not income_frequency_obj:
+            raise ValueError("Invalid income type or frequency selection.")
+
+        # Values for update
+        income_record.amount_encrypted = str(amount)
+        income_record.income_type = income_type_obj
+        income_record.income_frequency = income_frequency_obj
+        income_record.month = month
+
+        session.commit()
+        return income_record
+    
+    except Exception as e:
+        session.rollback()
+        raise e
+    
     finally:
         session.close()
