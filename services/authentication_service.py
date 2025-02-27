@@ -45,42 +45,6 @@ def register_user_form():
             st.rerun()
 
 
-# def login_user_form():
-#     """Render login form and authenticate user."""
-#     with st.form("Login"):
-#         # Input Fields
-#         username = st.text_input("Username", key="login_username")
-#         password = st.text_input("Password", type="password", key="login_password")
-#         submit = st.form_submit_button("Login")
-
-
-#         if submit:
-#             if authenticate(username, password):
-#                 # Store user data in cookies
-#                 cookies["authenticated"] = "true"
-#                 cookies["username"] = username
-#                 cookies.save()
-
-#                 # Store in session state
-#                 st.session_state.authenticated = True
-#                 st.session_state.username = username
-
-#                 st.success(f"Welcome, {username}!")
-#                 st.rerun()
-#             else:
-#                 st.error("Invalid username or password")
-
-
-# def logout():
-#     """Clear authentication data."""
-#     cookies["authenticated"] = "false"
-#     cookies["username"] = ""
-#     cookies.save()
-    
-#     st.session_state.authenticated = False
-#     st.session_state.username = None
-#     st.rerun()
-
 
 def load_session():
     """Retrieve login state from cookies on app startup."""

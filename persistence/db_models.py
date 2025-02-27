@@ -55,39 +55,39 @@ class Income(Base):
     income_frequency = relationship("Frequency", back_populates="incomes")
     
 
-# class Expense(Base):
-#     __tablename__ = "expenses"
+class Expense(Base):
+    __tablename__ = "expenses"
 
-#     id = Column(Integer, primary_key=True, index=True)
-#     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-#     amount = Column(Float, nullable=False)
-#     category_id = Column(Integer, ForeignKey("expense_categories.id"), nullable=False)
-#     date_time = Column(DateTime, nullable=False)
-#     source = Column(String(50), nullable=True)  # "manual", "csv_upload", "qr_scan"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    amount = Column(Float, nullable=False)
+    category_id = Column(Integer, ForeignKey("expense_categories.id"), nullable=False)
+    date_time = Column(DateTime, nullable=False)
+    source = Column(String(50), nullable=True) 
 
-#     user = relationship("User", back_populates="expenses")
-#     category = relationship("ExpenseCategory")
-
-
-# class ExpenseCategory(Base):
-#     __tablename__ = "expense_categories"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     name = Column(String(50), unique=True, nullable=False)
+    user = relationship("User", back_populates="expenses")
+    category = relationship("ExpenseCategory")
 
 
-# class DashboardSetting(Base):
-#     __tablename__ = "dashboard_settings"
+class ExpenseCategory(Base):
+    __tablename__ = "expense_categories"
 
-#     id = Column(Integer, primary_key=True, index=True)
-#     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-#     chart_id = Column(Integer, nullable=False) 
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), unique=True, nullable=False)
 
 
-# class SavingsGoal(Base):
-#     __tablename__ = "savings_goals"
+class DashboardSetting(Base):
+    __tablename__ = "dashboard_settings"
 
-#     id = Column(Integer, primary_key=True, index=True)
-#     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-#     target_amount = Column(Float, nullable=False)
-#     current_savings = Column(Float, nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    chart_id = Column(Integer, nullable=False) 
+
+
+class SavingsGoal(Base):
+    __tablename__ = "savings_goals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    target_amount = Column(Float, nullable=False)
+    current_savings = Column(Float, nullable=False)

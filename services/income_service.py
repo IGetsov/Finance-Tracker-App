@@ -5,6 +5,7 @@ from persistence.db_models import Frequency, Income, IncomeCategory
 
 
 def get_income_categories():
+    """Display all Income categories"""
     session = next(get_session())
     try:
         categories = session.query(IncomeCategory).all()
@@ -16,6 +17,7 @@ def get_income_categories():
 
 
 def get_frequencies():
+    """Display all frequencies"""
     session = next(get_session())
     try:
         frequencies = session.query(Frequency).all()
@@ -25,6 +27,7 @@ def get_frequencies():
 
 
 def add_income(user_id: int, amount: float, income_type: int, frequency: int):
+    """Create new Income record for relevant user ID"""
     session = next(get_session())
     
     try:
@@ -63,6 +66,7 @@ def add_income(user_id: int, amount: float, income_type: int, frequency: int):
 
     
 def edit_income(income_id: int, user_id: int, amount: float, income_type: int, frequency: int, month: date):
+    """Edit Income record by income ID and user ID"""
     session = next(get_session())
 
     try:
@@ -90,5 +94,40 @@ def edit_income(income_id: int, user_id: int, amount: float, income_type: int, f
         session.rollback()
         raise e
     
+    finally:
+        session.close()
+
+
+def delete_income(income_id: int, user_id: int):
+    """Delete Income record by income ID and user ID"""
+    session = next(get_session())
+    try:
+        # Find the income record
+        income_record = session.query(Income).filter_by(id=income_id, user_id=user_id).first()
+
+        if not income_record:
+            raise ValueError("Income record not found or does not belong to the user.")
+
+        # Delete income record
+        session.delete(income_record)
+        session.commit()
+
+        return {"message": "Income deleted successfully!"}
+
+    except Exception as e:
+        session.rollback()
+        raise e
+
+    finally:
+        session.close()
+
+
+def get_user_incomes(user_id: int):
+    """Get all income records by user ID"""
+    session = next(get_session())
+    try:
+        return session.query(Income).filter_by(user_id=user_id).all()
+    except Exception as e:
+        raise e
     finally:
         session.close()
