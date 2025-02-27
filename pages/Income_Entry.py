@@ -64,7 +64,7 @@ def display_user_income_menu(user_id, income_categories, frequencies):
         income_df = []
         for income in user_incomes:
             income_df.append({
-                "ID": income.id,
+                "ID": income.income_id,
                 "Amount ($)": income.amount_encrypted,
                 "Type": income_categories.get(income.income_type_id, "Unknown"),
                 "Frequency": frequencies.get(income.income_frequency_id, "Unknown"),

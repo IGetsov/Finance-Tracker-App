@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Date, DateTime, Float, ForeignKey, Integer, String, Boolean
+from sqlalchemy import TIMESTAMP, Column, Date, DateTime, Float, ForeignKey, Integer, String, Boolean, func
 from sqlalchemy.orm import relationship
 from persistence.connectors import Base
 
@@ -13,6 +13,7 @@ class User(Base):
     role_id = Column(Integer, ForeignKey("roles.role_id"))
 
     income = relationship("Income", back_populates="user")
+    expenses = relationship("Expense", back_populates="user")
 
 
 class Role(Base):
@@ -58,12 +59,13 @@ class Income(Base):
 class Expense(Base):
     __tablename__ = "expenses"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    expense_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
+    month = Column(DateTime, nullable=False)
     amount = Column(Float, nullable=False)
     category_id = Column(Integer, ForeignKey("expense_categories.id"), nullable=False)
-    date_time = Column(DateTime, nullable=False)
-    source = Column(String(50), nullable=True) 
+    description = Column(String(255), nullable=False)
+    created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 
     user = relationship("User", back_populates="expenses")
     category = relationship("ExpenseCategory")

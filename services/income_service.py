@@ -126,7 +126,7 @@ def get_user_incomes(user_id: int):
     """Get all income records by user ID"""
     session = next(get_session())
     try:
-        return session.query(Income).filter_by(user_id=user_id).all()
+        return session.query(Income).filter(Income.user_id==user_id).all()
     except Exception as e:
         raise e
     finally:
