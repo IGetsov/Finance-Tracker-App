@@ -103,17 +103,14 @@ def login_user(user_name: str, password: str) -> Dict[str, str]:
     session = next(get_session())
     try:
         # Check if user name does not exist and raise an error
-        is_user = session.query(User).filter(User.username == user_name).first()
+        is_user = view_user_by_name(user_name)
         
         if not is_user or not verify_password(password, is_user.password_hash):
             return {
                 "status": "error",
                 "message": "Invalid username or password! Please try again."
             }
-        return {
-            "status": "success",
-            "message": f"Welcome {user_name}!"
-        }
+        return is_user
     finally:
         session.close()
 

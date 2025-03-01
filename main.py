@@ -4,6 +4,7 @@ from services import user_service as us
 from pages import Income_Entry as ie
 from services.token_service import get_authenticator
 from pages import Income_Entry as ie
+from views.expences_view import display_expence_entry_menu
 
 
 authenticator, config = get_authenticator()
@@ -28,8 +29,7 @@ if st.session_state.toggle_element:
     else:
         show_login = False
 
-    
-print(f"Session STATE: {st.session_state}")
+
 if show_login:
     name, authentication_status, username = authenticator.login("Login", location="main")
     
@@ -38,10 +38,21 @@ if show_login:
     if authentication_status:
         # print(f'{username} password: {config["credentials"]["usernames"][username]["password"]}')
         login_response = us.login_user(username, config["credentials"]["usernames"][username]["password"])
+        
         # Logout button
-        authenticator.logout("Logout", "main")
+        if authenticator.logout("Logout", "main"):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+                
+            # Clear Streamlit cache
+            st.session_state.clear()
+            st.cache_data.clear()
+            st.rerun()
+     
+
         st.sidebar.write(f"Welcome, {username}!")
         st.session_state.toggle_element = False
+        st.session_state.user_object = us.view_user_by_name(username)
 
         # Display user control buttons
         st.subheader("Manage your finances")
@@ -65,10 +76,12 @@ if show_login:
 
         if st.session_state.selected_section == "income":
             ie.display_income_entry_menu()
+   
         elif st.session_state.selected_section == "income_history":
-            ie.display_user_income_menu(3)
+            usr_id = st.session_state.user_object.user_id
+            ie.display_user_income_menu(usr_id)
         elif st.session_state.selected_section == "expence":
-            st.warning("Not implemented yet!")
+            display_expence_entry_menu()
         elif st.session_state.selected_section == "goals":
             st.warning("Not implemented yet!")
 

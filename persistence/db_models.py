@@ -63,19 +63,33 @@ class Expense(Base):
     user_id = Column(Integer, ForeignKey("users.user_id"), nullable=False)
     month = Column(DateTime, nullable=False)
     amount = Column(Float, nullable=False)
-    category_id = Column(Integer, ForeignKey("expense_categories.id"), nullable=False)
+    category_id = Column(Integer, ForeignKey("expense_categories.category_id"), nullable=False)
     description = Column(String(255), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 
     user = relationship("User", back_populates="expenses")
-    category = relationship("ExpenseCategory")
+    expense_category = relationship("ExpenseCategory", back_populates="expenses")
 
 
 class ExpenseCategory(Base):
     __tablename__ = "expense_categories"
 
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50), unique=True, nullable=False)
+    category_id = Column(Integer, primary_key=True, index=True)
+    category_name = Column(String(50), unique=True, nullable=False)
+    category_description = Column(String(255), nullable=False)
+
+    expenses = relationship("Expense", back_populates="expense_category")
+    sub_categories = relationship("ExpenseSubCategory", back_populates="category")
+
+
+class ExpenseSubCategory(Base):
+    __tablename__ = "expense_sub_categories"
+
+    sub_category_id = Column(Integer, primary_key=True, index=True)
+    sub_category_name = Column(String, nullable=False)
+    category_id = Column(Integer, ForeignKey("expense_categories.category_id"), nullable=False)
+
+    category = relationship("ExpenseCategory", back_populates="sub_categories")  
 
 
 class DashboardSetting(Base):

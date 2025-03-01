@@ -10,7 +10,6 @@ def get_income_categories():
     try:
         categories = session.query(IncomeCategory).all()
         result = {category.id: category.income_description for category in categories}
-        print(f"THIS IS THE OUTPUT: {result}")
         return result
     finally:
         session.close()
