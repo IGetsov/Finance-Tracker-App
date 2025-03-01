@@ -29,7 +29,7 @@ if st.session_state.toggle_element:
         show_login = False
 
     
-
+print(f"Session STATE: {st.session_state}")
 if show_login:
     name, authentication_status, username = authenticator.login("Login", location="main")
     
@@ -48,21 +48,25 @@ if show_login:
         col1, col2, col3 = st.columns(3)
         # Render Manage Income menu
         with col1:
-            if st.button("Manage Income"):
+            if st.button("Manage Income", key="income_add"):
                 st.session_state.selected_section = "income"
+            if st.button("View My Incomes", key="income_view"):
+                st.session_state.selected_section = "income_history"
         # Renger Manage Expceces menu
         with col2:
-            if st.button("Manage Expences"):
+            if st.button("Manage Expences", key="expence_add"):
                 st.session_state.selected_section = "expence"
         # Render Manage Goals menu
         with col3:
-            if st.button("Manage Goals"):
+            if st.button("Manage Goals", key="goal_add"):
                 st.session_state.selected_section = "goals"
         # Add divider after the buttons
         st.divider()
 
         if st.session_state.selected_section == "income":
             ie.display_income_entry_menu()
+        elif st.session_state.selected_section == "income_history":
+            ie.display_user_income_menu(3)
         elif st.session_state.selected_section == "expence":
             st.warning("Not implemented yet!")
         elif st.session_state.selected_section == "goals":
