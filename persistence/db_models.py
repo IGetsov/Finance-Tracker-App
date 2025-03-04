@@ -64,6 +64,7 @@ class Expense(Base):
     month = Column(DateTime, nullable=False)
     amount = Column(Float, nullable=False)
     category_id = Column(Integer, ForeignKey("expense_categories.category_id"), nullable=False)
+    sub_category_id = Column(Integer, ForeignKey("expense_sub_categories.sub_category_id"), nullable=False)
     description = Column(String(255), nullable=False)
     created_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
 

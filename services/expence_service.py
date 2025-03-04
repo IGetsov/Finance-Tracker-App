@@ -26,7 +26,7 @@ def get_expense_sub_categories(category_id: int):
         session.close()
 
 
-def add_expense(user_id, month, amount, category_id, description):
+def add_expense(user_id: int, month, amount: float, category_id: int, sub_category_id: int, description: str):
     """Create new Expense record for relevant user ID"""
     try:
         session = next(get_session())
@@ -38,17 +38,18 @@ def add_expense(user_id, month, amount, category_id, description):
             category_id=category_id,
             description=description
         )
-
+      
         # Get Expense Type and Sub type
-        expense_type_obj = session.query(ExpenseCategory).filter_by(expense_id=new_expense.expense_type).first()
-        if not expense_type_obj:
-            raise ValueError("Invalid expense type.")
+        # expense_type_obj = session.query(ExpenseCategory).filter_by(expense_id=new_expense.expense_type).first()
+        # if not expense_type_obj:
+        #     raise ValueError("Invalid expense type.")
         
         expense_to_add = Expense(
             user_id=user_id,
             month=month,
             amount=amount,
             category_id=category_id,
+            sub_category_id=sub_category_id,
             description=description
         )
         
