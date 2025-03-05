@@ -69,7 +69,7 @@ def edit_income(income_id: int, user_id: int, amount: float, income_type: int, f
     session = next(get_session())
 
     try:
-        income_record = session.query(Income).filter_by(id=income_id, user_id=user_id).first()
+        income_record = session.query(Income).filter_by(income_id=income_id, user_id=user_id).first()
         if not income_record:
             raise ValueError("Income record not found!")
 
@@ -130,3 +130,5 @@ def get_user_incomes(user_id: int):
         raise e
     finally:
         session.close()
+
+

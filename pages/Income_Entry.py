@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 import streamlit as st
 from services.income_service import add_income, delete_income, edit_income, get_frequencies, get_income_categories, get_user_incomes
 from services.token_service import get_authenticator
@@ -70,7 +70,7 @@ def display_user_income_menu(user_id):
         for income in user_incomes:
             income_df.append({
                 "ID": income.income_id,
-                "Amount ($)": income.amount_encrypted,
+                "Amount ($)": float(income.amount_encrypted),
                 "Type": categories.get(income.income_type_id, "Unknown"),
                 "Frequency": frequencies.get(income.income_frequency_id, "Unknown"),
                 "Month": income.month.strftime("%Y-%m")
@@ -78,32 +78,77 @@ def display_user_income_menu(user_id):
 
         df = pd.DataFrame(income_df)
 
-        st.dataframe(df, use_container_width=True)
-        # selected_row = st.selectbox("Select an income to edit/delete:", df.index)
-        # selected_income = user_incomes[selected_row]
+        selection = dataframe_with_selections(df)
+        st.write(selection)
 
-        # # Form fields for editing
-        # month = st.date_input("Month:", value=selected_income.month)
-        # amount = st.number_input("Income Amount ($):", min_value=0.0, value=float(selected_income.amount_encrypted), format="%.2f")
-        # income_type_id = st.selectbox("Income Type:", options=list(income_categories.keys()), index=list(income_categories.keys()).index(selected_income.income_type_id), format_func=lambda x: income_categories[x])
-        # income_frequency_id = st.selectbox("Income Frequency:", options=list(frequencies.keys()), index=list(frequencies.keys()).index(selected_income.income_frequency_id), format_func=lambda x: frequencies[x])
+        if not selection.empty:
+            st.info(f"Editing {len(selection)} record(s)")
 
-        col1, col2 = st.columns(2)
+            for _, row in selection.iterrows():
+                print(f"ROW DATA:: {row}")
+                with st.form(f"edit_form_{row['ID']}"):
+                    st.subheader(f"Edit Income ID {row['ID']}")
 
-        # with col1:
-        #     if st.button("Update Income"):
-        #         try:
-        #             edit_income(selected_income.id, user_id, amount, income_type_id, income_frequency_id, month)
-        #             st.success("Income updated successfully!")
-        #             st.rerun()
-        #         except Exception as e:
-        #             st.error(f"Error updating income: {e}")
+                    try:
+                        amount_value = float(row["Amount ($)"])  
+                    except ValueError:
+                        amount_value = 0.0  
 
-        # with col2:
-        #     if st.button("Delete Income", type="primary"):
-        #         try:
-        #             delete_income(selected_income.id, user_id)
-        #             st.success("Income deleted successfully!")
-        #             st.rerun()
-        #         except Exception as e:
-        #             st.error(f"Error deleting income: {e}")
+                    new_amount = st.number_input(
+                        "Amount ($)", value=amount_value, min_value=0.01  
+                    )
+                    income_type_id = next((k for k, v in categories.items() if v == row["Type"]), None)
+
+                    new_income_type = st.selectbox(
+                        "Income Type",
+                        options=list(categories.keys()), 
+                        format_func=lambda x: categories[x], 
+                        index=list(categories.keys()).index(income_type_id) if income_type_id else 0
+                    )
+
+                    frequency_id = next((k for k, v in frequencies.items() if v == row["Frequency"]), None)
+
+                    new_frequency = st.selectbox(
+                        "Frequency",
+                        options=list(frequencies.keys()),  
+                        format_func=lambda x: frequencies[x],  
+                        index=list(frequencies.keys()).index(frequency_id) if frequency_id else 0
+                    )
+
+                    new_month = st.date_input("Month", value=datetime.strptime(row["Month"], "%Y-%m").date())
+
+                    if st.form_submit_button("Save Changes"):
+                        edit_income(
+                            income_id=row["ID"],
+                            user_id=user_id,
+                            amount=new_amount,
+                            income_type=new_income_type,
+                            frequency=new_frequency,
+                            month=new_month
+                        )
+                        st.success(f"Income ID {row['ID']} updated successfully!")
+                        st.rerun()
+
+                # Delete Button (outside form)
+                if st.button(f"Delete {row['ID']}", key=f"delete_{row['ID']}"):
+                    delete_income(row["ID"], user_id)
+                    st.success(f"Income record {row['ID']} deleted!")
+                    st.rerun()
+
+
+def dataframe_with_selections(df: pd.DataFrame, init_value: bool = False) -> pd.DataFrame:
+    """Helper function that adds selection column to a DataFrame and generates selection table below it."""
+    df_with_selections = df.copy()
+    df_with_selections.insert(0, "Select", init_value)
+
+    # Get dataframe row-selections from user with st.data_editor
+    edited_df = st.data_editor(
+        df_with_selections,
+        hide_index=True,
+        column_config={"Select": st.column_config.CheckboxColumn(required=True)},
+        disabled=df.columns,
+    )
+
+    # Filter the dataframe using the temporary column, then drop the column
+    selected_rows = edited_df[edited_df.Select]
+    return selected_rows.drop('Select', axis=1)
