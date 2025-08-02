@@ -15,7 +15,11 @@
                 "${file}",
                 "--server.port",
                 "2000"
-            ]
+            ],
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
         }
     ]
 }

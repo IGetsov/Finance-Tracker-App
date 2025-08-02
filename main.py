@@ -3,11 +3,14 @@ import streamlit_authenticator as stauth
 from services import user_service as us
 from pages import Income_Entry as ie
 from services.token_service import get_authenticator
-from pages import Income_Entry as ie
+# from pages import Income_Entry as ie
 from views.expences_view import display_expence_entry_menu
+# import pdb; pdb.set_trace()
 
 
 authenticator, config = get_authenticator()
+print(f'Authenticator: {authenticator}')
+print(f'Config: {config}')
 
 st.title("Finance Tracker Dashboard")
 
@@ -20,7 +23,7 @@ if "selected_section" not in st.session_state:
 
 # Toggle between Login and Register
 #choice = st.radio("Select an option:", ["Login", "Register"])
-show_login = True
+show_login = False
 
 # Toggle between Login and Register
 if st.session_state.toggle_element:
@@ -32,11 +35,13 @@ if st.session_state.toggle_element:
 
 if show_login:
     name, authentication_status, username = authenticator.login("Login", location="main")
+    print(f'1 Name: {name} / Auth status {authentication_status} / username: {username} /')
+    print(config)
     
 
     # Handle login cases
     if authentication_status:
-        # print(f'{username} password: {config["credentials"]["usernames"][username]["password"]}')
+        print(f'2 {username} password: {config["credentials"]["usernames"][username]["password"]}')
         login_response = us.login_user(username, config["credentials"]["usernames"][username]["password"])
         
         # Logout button
@@ -107,11 +112,22 @@ else:
         else:
             # Generate JWT token as password placeholder
             hashed_password = stauth.Hasher([new_password]).generate()[0]
-
+            # Register user details in DB
             us.register_user(new_username, new_email, hashed_password)
 
             st.success("Registration successful! You can now log in.")
-
+            # Refresh authenticator and config from DB
+            authenticator, config = get_authenticator()
+    
+    # Exit button
+    if st.button("Exit"):
+        for key in list(st.session_state.keys()):
+            del st.session_state[key]
+            
+        # Clear Streamlit cache
+        st.session_state.clear()
+        st.cache_data.clear()
+        st.rerun()
 
 
 # if __name__ == "__main__":

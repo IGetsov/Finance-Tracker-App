@@ -11,31 +11,43 @@ COOKIE_PASS = os.getenv("COOKIE_SECRET")
 def get_authenticator():
     """Initialize and return Streamlit Authenticator."""
     users = us.view_users()
-
-    # Convert user data to match expected format for streamlit_authenticator
-    credentials = {
-        "usernames": {
-            user.username: {
-                "email": user.email,
-                "name": user.username,
-                "password": user.password_hash
-            } for user in users
+    # Handle visibility issue if no users are logged in DB
+    if not users:
+        credentials = {
+            "usernames": {
+                "admin": {
+                    "email": "ivnegets@gmail.com",
+                    "name": "Admin",
+                    "password": stauth.Hasher(["Admin!@#"]).generate()[0]
+                }
+            }
         }
-    }
+    else:
+        # Convert user data to match expected format for streamlit_authenticator
+        credentials = {
+            "usernames": {
+                user.username: {
+                    "email": user.email,
+                    "name": user.username,
+                    "password": user.password_hash
+                } for user in users
+            }
+        }
 
     # Save credentials to a YAML file (streamlit_authenticator requires a file)
     with open("credentials.yaml", "w") as file:
         yaml.dump({"credentials": credentials}, file)
 
-    # Read YAML for authenticator
-    with open("credentials.yaml") as file:
-        config = yaml.load(file, Loader=SafeLoader)
+    # # Read YAML for authenticator
+    # with open("credentials.yaml", "r") as file:
+    #     config = yaml.load(file, Loader=SafeLoader)
 
     # Extract user details from YAML structure
-    usernames = list(config["credentials"]["usernames"].keys())
-    names = [config["credentials"]["usernames"][user]["name"] for user in usernames]
-    passwords = [config["credentials"]["usernames"][user]["password"] for user in usernames]
+    usernames = list(credentials["usernames"].keys())
+    names = [credentials["usernames"][user]["name"] for user in usernames]
+    passwords = [credentials["usernames"][user]["password"] for user in usernames]
 
+    config = {"credentials": credentials}
     # Create authenticator instance
     authenticator = stauth.Authenticate(
         names,
