@@ -1,42 +1,38 @@
-import os
-from dotenv import load_dotenv
+from datetime import timedelta
+from fastapi import HTTPException
 from persistence.connectors import get_session
-import streamlit_authenticator as stauth
 from persistence.db_models import Role, User
-from passlib.context import CryptContext
 from typing import Dict
 from persistence.mail_client import send_email
+from services.authentication_service import create_access_token, hash_password, verify_password
 
 
-# Password Hashing setup
-load_dotenv()
-
-hash_scheme = os.getenv("HASH_SCHEME", "bcrypt")  # Default to bcrypt if not set
-hash_deprecated = os.getenv("HASH_DEPRECATED", "auto")
-hash_rounds = int(os.getenv("HASH_ROUNDS", 12))  # Work factor for bcrypt
-COOKIE_PASS = os.getenv("COOKIE_SECRET")
-
-
-
-# Set up password hashing context
-pwd_context = CryptContext(
-    schemes=[hash_scheme], 
-    deprecated=hash_deprecated, 
-    bcrypt__rounds=hash_rounds  # Adjust bcrypt work factor
-)
+def register_user(username: str, email: str, password: str):
+    session = next(get_session())
+    try:
+        if session.query(User).filter(User.username == username).first():
+            raise HTTPException(status_code=400, detail="Username already exists")
+        
+        hashed_pw = hash_password(password)
+        new_user = User(username, email, password_hash=hashed_pw)
+        session.add(new_user)
+        session.commit()
+        return new_user
+    finally:
+        session.close()
 
 
-def hash_password(password: str) -> str:
-    """Hashes a password securely."""
-    return pwd_context.hash(password)
+def login_user(username: str, password: str):
+    session = next(get_session())
+    try:
+        user = session.query(User).filter(User.username == username).first()
+        if not user or not verify_password(password=password, hashed_password=user.password_hash):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
 
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifies a password against its hash."""
-    if stauth.Hasher([plain_password]).generate()[0] == hashed_password:
-        return True
-    else:
-        return False
+        token = create_access_token(data={"sub": user.username}, expires_delta=timedelta(minutes=60))
+        return {"access_token": token, "token_type": "bearer"}
+    finally:
+        session.close()
  
 
 def view_roles():
