@@ -55,7 +55,6 @@ def add_income(user_id: int, amount: float, income_type: int, frequency: int):
         )
         session.add(income_to_add)
         session.commit()
-        print(income_to_add)
         return income_to_add
     except Exception as e:
         session.rollback()

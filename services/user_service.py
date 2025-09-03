@@ -13,8 +13,8 @@ def register_user(username: str, email: str, password: str):
         if session.query(User).filter(User.username == username).first():
             raise HTTPException(status_code=400, detail="Username already exists")
         
-        hashed_pw = hash_password(password)
-        new_user = User(username, email, password_hash=hashed_pw)
+        new_user = User(username, email, password_hash=hash_password(password))
+        print(f'********** {new_user} *********')
         session.add(new_user)
         session.commit()
         return new_user
